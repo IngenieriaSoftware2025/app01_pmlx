@@ -1,99 +1,88 @@
+console.log('🚀 JavaScript cargado');
 
-import { Dropdown } from "bootstrap";
-import Swal from "sweetalert2";
-import { validarFormulario, Toast } from '../funciones';
-
-document.addEventListener('DOMContentLoaded', function() {
+// Esperar a que la página esté lista
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 Página lista');
+    
     const FormProductos = document.getElementById('FormProductos');
     const BtnGuardar = document.getElementById('BtnGuardar');
-    const BtnModificar = document.getElementById('BtnModificar');
-    const BtnLimpiar = document.getElementById('BtnLimpiar');
     
-    // Verificar que los elementos existen
-    if (!FormProductos) {
-        console.error('No se encontró el formulario FormProductos');
-        return;
-    }
-
-    // Cargar datos iniciales
-    buscarProductos();
-
-    // Manejar envío del formulario
-    FormProductos.addEventListener('submit', GuardarProductos);
+    console.log('📝 Formulario:', FormProductos ? 'ENCONTRADO' : 'NO ENCONTRADO');
+    console.log('🔘 Botón:', BtnGuardar ? 'ENCONTRADO' : 'NO ENCONTRADO');
     
-    // Manejar botón limpiar
-    if (BtnLimpiar) {
-        BtnLimpiar.addEventListener('click', function() {
-            FormProductos.reset();
-            document.getElementById('productos_id').value = '';
-            BtnGuardar.classList.remove('d-none');
-            BtnModificar.classList.add('d-none');
+    if (FormProductos) {
+        FormProductos.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            console.log('⚡ BOTÓN PRESIONADO - INICIANDO PROCESO');
+            
+            // Obtener valores directamente
+            const nombre = document.getElementById('producto_nombre')?.value || '';
+            const cantidad = document.getElementById('producto_cantidad')?.value || '';
+            const categoria = document.getElementById('producto_categoria')?.value || '';
+            const prioridad = document.getElementById('producto_prioridad')?.value || '';
+            
+            console.log('📋 VALORES:');
+            console.log('- Nombre:', `"${nombre}"`);
+            console.log('- Cantidad:', `"${cantidad}"`);
+            console.log('- Categoría:', `"${categoria}"`);
+            console.log('- Prioridad:', `"${prioridad}"`);
+            
+            // Validación súper simple
+            if (nombre === '' || cantidad === '' || categoria === '' || prioridad === '') {
+                console.log('❌ CAMPOS VACÍOS DETECTADOS');
+                alert('Por favor completa todos los campos');
+                return;
+            }
+            
+            console.log('✅ TODOS LOS CAMPOS COMPLETOS');
+            
+            // Intentar enviar
+            try {
+                const formData = new FormData();
+                formData.append('producto_nombre', nombre);
+                formData.append('producto_cantidad', cantidad);
+                formData.append('producto_categoria', categoria);
+                formData.append('producto_prioridad', prioridad);
+                
+                console.log('🌐 ENVIANDO A: /app01_pmlx/productos/guardarAPI');
+                
+                const respuesta = await fetch('/app01_pmlx/productos/guardarAPI', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('📨 RESPUESTA RECIBIDA:', respuesta.status);
+                
+                const resultado = await respuesta.json();
+                console.log('📦 DATOS:', resultado);
+                
+                if (resultado.codigo === 1) {
+                    alert('¡Producto agregado exitosamente!');
+                    FormProductos.reset();
+                    document.getElementById('producto_prioridad').value = 'Media';
+                } else {
+                    alert('Error: ' + resultado.mensaje);
+                }
+                
+            } catch (error) {
+                console.log('💥 ERROR:', error);
+                alert('Error de conexión: ' + error.message);
+            }
         });
-    }
-
-    // Manejar modificar
-    if (BtnModificar) {
-        BtnModificar.addEventListener('click', ModificarProducto);
     }
 });
 
-const GuardarProductos = async (e) => {
-    e.preventDefault();
-    const BtnGuardar = document.getElementById('BtnGuardar');
-    const FormProductos = document.getElementById('FormProductos');
+// Función para probar manualmente
+window.probarFormulario = () => {
+    console.log('🧪 PRUEBA MANUAL');
+    const nombre = document.getElementById('producto_nombre')?.value;
+    const cantidad = document.getElementById('producto_cantidad')?.value;
+    const categoria = document.getElementById('producto_categoria')?.value;
+    const prioridad = document.getElementById('producto_prioridad')?.value;
     
-    BtnGuardar.disabled = true;
-
-    if (!validarFormulario(FormProductos, ['productos_id'])) {
-        Swal.fire({
-            position: "center",
-            icon: "info",
-            title: "FORMULARIO INCOMPLETO",
-            text: "Debe de validar todos los campos",
-            showConfirmButton: true,
-        });
-        BtnGuardar.disabled = false;
-        return;
-    }
-
-    const body = new FormData(FormProductos);
-    const url = '/app01_pmlx/productos/guardarAPI';
-    const config = {
-        method: 'POST',
-        body
-    }
-
-    try {
-        const respuesta = await fetch(url, config);
-        const datos = await respuesta.json();
-
-        if (datos.codigo === 1) {
-            Toast.fire({
-                icon: 'success',
-                title: datos.mensaje
-            });
-            FormProductos.reset();
-            buscarProductos(); // Recargar tabla
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: datos.mensaje
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error de conexión'
-        });
-    } finally {
-        BtnGuardar.disabled = false;
-    }
+    console.log('Valores actuales:');
+    console.log('- Nombre:', nombre);
+    console.log('- Cantidad:', cantidad);
+    console.log('- Categoría:', categoria);
+    console.log('- Prioridad:', prioridad);
 }
-
-
-FormProductos.addEventListener('submit', GuardarProductos);
-
-

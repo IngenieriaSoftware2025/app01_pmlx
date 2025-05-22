@@ -81,3 +81,4 @@ function getHeadersApi(){
 function asset($ruta){
     return "/". $_ENV['APP_NAME']."/public/" . $ruta;
 }
+

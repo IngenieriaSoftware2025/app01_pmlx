@@ -1,52 +1,33 @@
 <?php 
 require_once __DIR__ . '/../includes/app.php';
 
-
-
+use Controllers\UsuarioController;
+use Controllers\ProductoController;
 use MVC\Router;
 use Controllers\AppController;
-use Controllers\CategoriasController;
-use Controllers\PrioridadesController;
-use Controllers\ProductosController;
 
-
+// ✅ PRIMERO crear el router
 $router = new Router();
 $router->setBaseURL('/' . $_ENV['APP_NAME']);
 
-
+// ✅ DESPUÉS agregar las rutas
 $router->get('/', [AppController::class,'index']);
 
-//ESTE ES EL URL PARA USUARIO
+// // RUTAS PARA USUARIOS (existentes)
+// $router->get('/usuario', [UsuarioController::class, 'renderizarPagina']);
+// $router->post('/usuarios/guardarAPI', [UsuarioController::class, 'guardarAPI']);
+// $router->get('/usuarios/buscarAPI', [UsuarioController::class, 'buscarAPI']);
+// $router->post('/usuarios/modificarAPI', [UsuarioController::class, 'modificarAPI']);
+// $router->get('/usuarios/eliminar', [UsuarioController::class, 'EliminarAPI']);
 
-$router->get('/productos', [ProductosController::class, 'renderizarPagina']);
+// RUTAS PARA PRODUCTOS (nuevas)
+$router->get('/productos', [ProductoController::class, 'renderizarPagina']);
+$router->post('/productos/guardarAPI', [ProductoController::class, 'guardarAPI']);
+$router->get('/productos/buscarAPI', [ProductoController::class, 'buscarAPI']);
+$router->get('/productos/buscarCompradosAPI', [ProductoController::class, 'buscarCompradosAPI']);
+$router->get('/productos/marcarComprado', [ProductoController::class, 'marcarCompradoAPI']);
+$router->get('/productos/desmarcarComprado', [ProductoController::class, 'desmarcarCompradoAPI']);
+$router->get('/productos/eliminar', [ProductoController::class, 'eliminarAPI']);
 
-// productos 
-
-$router->post('/productos/guardarAPI', [ProductosController::class, 'guardarAPI']);
-$router->get('/productos/buscarAPI', [ProductosController::class, 'buscarAPI']);
-$router->post('/productos/modificarAPI', [ProductosController::class, 'modificarAPI']);
-$router->get('/productos/eliminar', [ProductosController::class, 'EliminarAPI']);
-
-
-// categorias 
-
-
-$router->get('/categorias', [CategoriasController::class, 'renderizarPagina']);
-$router->post('/categorias/guardarAPI', [CategoriasController::class, 'guardarAPI']);
-$router->get('/categorias/buscarAPI', [CategoriasController::class, 'buscarAPI']);
-$router->post('/categorias/modificarAPI', [CategoriasController::class, 'modificarAPI']);
-$router->get('/categorias/eliminar', [CategoriasController::class, 'EliminarAPI']);
-
-
-// Prioridades
-
-
-$router->get('/prioridades', [PrioridadesController::class, 'renderizarPagina']);
-$router->post('/prioridades/guardarAPI', [PrioridadesController::class, 'guardarAPI']);
-$router->get('/prioridades/buscarAPI', [PrioridadesController::class, 'buscarAPI']);
-$router->post('/prioridades/modificarAPI', [PrioridadesController::class, 'modificarAPI']);
-$router->get('/prioridades/eliminar', [PrioridadesController::class, 'EliminarAPI']);
-
-
-// Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador
+// Comprueba y valida las rutas
 $router->comprobarRutas();
