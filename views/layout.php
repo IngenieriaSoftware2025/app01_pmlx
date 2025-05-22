@@ -7,7 +7,7 @@
     <script src="build/js/app.js"></script>
     <link rel="shortcut icon" href="<?= asset('images/super.png') ?>" type="image/x-icon">
     <link rel="stylesheet" href="<?= asset('build/styles.css') ?>">
-    <title>Suermercado </title>
+    <title>Supermercado </title>
 </head>
 
 <body>

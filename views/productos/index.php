@@ -3,8 +3,8 @@
         <div class="card custom-card shadow-lg" style="border-radius: 10px; border: 1px solid #28a745;">
             <div class="card-body p-3">
                 <div class="row mb-3">
-                    <h5 class="text-center mb-2">¡Lista de Compras de María!</h5>
-                    <h4 class="text-center mb-2 text-success">GESTIÓN DE PRODUCTOS</h4>
+                    <h5 class="text-center mb-2">Bienvenida María</h5>
+                    <h4 class="text-center mb-2 text-success">¡Ingresa tú listado de Compras!</h4>
                 </div>
 
                 <div class="row justify-content-center p-5 shadow-lg">
@@ -235,7 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // ⭐ CARGAR PRODUCTOS PENDIENTES Y COMPRADOS AL INICIO
     buscarProductos();
+    buscarProductosComprados();
 });
 
 async function buscarProductos() {
@@ -250,6 +252,57 @@ async function buscarProductos() {
         }
     } catch (error) {
         console.log('Error al buscar productos:', error);
+    }
+}
+
+// ⭐ NUEVA FUNCIÓN: Buscar productos comprados
+async function buscarProductosComprados() {
+    console.log('🔍 Buscando productos comprados...');
+    try {
+        const respuesta = await fetch('/app01_pmlx/productos/buscarCompradosAPI');
+        const datos = await respuesta.json();
+        console.log('📊 Productos comprados encontrados:', datos);
+        
+        if (datos.codigo === 1) {
+            mostrarProductosComprados(datos.data);
+        } else {
+            console.log('❌ Error en la respuesta:', datos.mensaje);
+        }
+    } catch (error) {
+        console.log('💥 Error al buscar productos comprados:', error);
+    }
+}
+
+// ⭐ NUEVA FUNCIÓN: Mostrar productos comprados
+function mostrarProductosComprados(productos) {
+    console.log('📋 Mostrando productos comprados:', productos);
+    
+    const tbody = document.getElementById('tbody-comprados');
+    
+    if (!tbody) {
+        console.log('❌ No se encontró tbody-comprados');
+        return;
+    }
+    
+    if (productos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No hay productos comprados</td></tr>';
+    } else {
+        tbody.innerHTML = productos.map(producto => `
+            <tr>
+                <td><strong>${producto.producto_nombre}</strong></td>
+                <td><span class="badge bg-primary">${producto.producto_cantidad}</span></td>
+                <td><span class="badge bg-info">${producto.producto_categoria}</span></td>
+                <td><span class="badge bg-secondary">${new Date().toLocaleDateString()}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-warning" onclick="regresarPendiente(${producto.producto_id})" title="Regresar a pendientes">
+                        <i class="bi bi-arrow-left-circle"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarDefinitivo(${producto.producto_id})" title="Eliminar definitivamente">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
     }
 }
 
@@ -287,16 +340,63 @@ function mostrarProductos(productos) {
     });
 }
 
+// ⭐ FUNCIÓN MODIFICADA: Marcar como comprado y actualizar ambas listas
 async function marcarComprado(id) {
     try {
         const respuesta = await fetch(`/app01_pmlx/productos/marcarComprado?id=${id}`);
         const datos = await respuesta.json();
         if (datos.codigo === 1) {
             alert('✅ Producto marcado como comprado');
-            buscarProductos();
+            buscarProductos(); // Actualizar productos pendientes
+            buscarProductosComprados(); // ⭐ Actualizar productos comprados
         }
     } catch (error) {
         console.log('Error:', error);
+    }
+}
+
+// ⭐ NUEVA FUNCIÓN: Regresar producto a pendientes
+async function regresarPendiente(id) {
+    console.log('↩️ Regresando producto a pendientes:', id);
+    try {
+        const respuesta = await fetch(`/app01_pmlx/productos/desmarcarComprado?id=${id}`);
+        const datos = await respuesta.json();
+        
+        if (datos.codigo === 1) {
+            console.log('✅ Producto regresado a pendientes exitosamente');
+            alert('↩️ Producto regresado a la lista de compras');
+            buscarProductos(); // Actualizar productos pendientes
+            buscarProductosComprados(); // Actualizar productos comprados
+        } else {
+            console.log('❌ Error al regresar a pendientes:', datos.mensaje);
+            alert('❌ Error: ' + datos.mensaje);
+        }
+    } catch (error) {
+        console.log('💥 Error al regresar a pendientes:', error);
+        alert('💥 Error de conexión: ' + error.message);
+    }
+}
+
+// ⭐ NUEVA FUNCIÓN: Eliminar definitivamente
+async function eliminarDefinitivo(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto DEFINITIVAMENTE?')) {
+        console.log('🗑️ Eliminando definitivamente producto:', id);
+        try {
+            const respuesta = await fetch(`/app01_pmlx/productos/eliminar?id=${id}`);
+            const datos = await respuesta.json();
+            
+            if (datos.codigo === 1) {
+                console.log('✅ Producto eliminado definitivamente');
+                alert('🗑️ Producto eliminado definitivamente');
+                buscarProductosComprados(); // Actualizar productos comprados
+            } else {
+                console.log('❌ Error al eliminar definitivamente:', datos.mensaje);
+                alert('❌ Error: ' + datos.mensaje);
+            }
+        } catch (error) {
+            console.log('💥 Error al eliminar definitivamente:', error);
+            alert('💥 Error de conexión: ' + error.message);
+        }
     }
 }
 </script>

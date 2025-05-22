@@ -7,6 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
     buscarProductos();
 });
 
+
+async function buscarProductosComprados() {
+    console.log('🔍 Buscando productos comprados...');
+    try {
+        // Usar el endpoint que ya funciona con parámetro
+        const respuesta = await fetch('/app01_pmlx/productos/buscarAPI?tipo=comprados');
+        const datos = await respuesta.json();
+        console.log('📊 Productos comprados encontrados:', datos);
+        
+        if (datos.codigo === 1) {
+            mostrarProductosComprados(datos.data);
+        } else {
+            console.log('❌ Error en la respuesta:', datos.mensaje);
+        }
+    } catch (error) {
+        console.log('💥 Error al buscar productos comprados:', error);
+    }
+}
+
 async function buscarProductos() {
     console.log('🔍 Buscando productos...');
     try {
@@ -99,6 +118,11 @@ async function marcarComprado(id) {
             console.log('✅ Producto marcado como comprado exitosamente');
             alert('✅ Producto marcado como comprado');
             buscarProductos(); // Recargar la lista
+
+
+             if (datos.productos_comprados) {
+                mostrarProductosComprados(datos.productos_comprados);
+            }
         } else {
             console.log('❌ Error al marcar como comprado:', datos.mensaje);
             alert('❌ Error: ' + datos.mensaje);
@@ -108,6 +132,9 @@ async function marcarComprado(id) {
         alert('💥 Error de conexión: ' + error.message);
     }
 }
+
+
+
 
 async function editarProducto(id) {
     // Función para editar productos (puedes implementarla después)

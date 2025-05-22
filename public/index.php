@@ -6,11 +6,11 @@ use Controllers\ProductoController;
 use MVC\Router;
 use Controllers\AppController;
 
-// ✅ PRIMERO crear el router
+// PRIMERO crear el router
 $router = new Router();
 $router->setBaseURL('/' . $_ENV['APP_NAME']);
 
-// ✅ DESPUÉS agregar las rutas
+//  DESPUÉS agregar las rutas
 $router->get('/', [AppController::class,'index']);
 
 
@@ -22,6 +22,10 @@ $router->get('/productos/buscarCompradosAPI', [ProductoController::class, 'busca
 $router->get('/productos/marcarComprado', [ProductoController::class, 'marcarCompradoAPI']);
 $router->get('/productos/desmarcarComprado', [ProductoController::class, 'desmarcarCompradoAPI']);
 $router->get('/productos/eliminar', [ProductoController::class, 'eliminarAPI']);
+$router->get('/productos/buscarCompradosTEST', [ProductoController::class, 'buscarCompradosTEST']);
+
+
+
 
 
 

@@ -20,6 +20,9 @@ class ProductoController
 
     public static function guardarAPI()
     {
+
+
+        
         header("Content-type: application/json; charset=utf-8");
         
         try {
@@ -77,9 +80,15 @@ class ProductoController
 {
     ob_clean();
     header("Content-type: application/json; charset=utf-8");
-    
+
+     error_log("Parámetro tipo recibido: " . ($_GET['tipo'] ?? 'NO DEFINIDO'));
+
     try {
         $db = self::getDB();
+
+         $tipo = $_GET['tipo'] ?? 'pendientes';
+
+         error_log("Variable tipo asignada: " . $tipo);
         
         $sql = "SELECT * FROM productos";
         $resultado = $db->query($sql);
@@ -126,26 +135,51 @@ class ProductoController
 
 
 
+public static function buscarCompradosAPI()
+{
+    ob_clean();
+    header("Content-type: application/json; charset=utf-8");
 
-public function buscarCompradosAPI() {
     try {
-        $productos = Productos::whereNotNull('productos_nombre')
-                           ->orderBy('productos_id', 'DESC')
-                           ->get();
+        $db = self::getDB();
         
-        return $this->json([
+        $sql = "SELECT * FROM productos WHERE producto_situacion = 1 AND producto_comprado = 1";
+        $resultado = $db->query($sql);
+        
+        $productos_comprados = []; // ✅ Variable correcta
+        
+        if ($resultado) {
+            while ($row = $resultado->fetch(\PDO::FETCH_ASSOC)) {
+                if ($row) {
+                    $productos_comprados[] = [ // ✅ Usar la variable correcta
+                        'producto_id' => intval($row['producto_id'] ?? $row['PRODUCTO_ID'] ?? 0),
+                        'producto_nombre' => trim($row['producto_nombre'] ?? $row['PRODUCTO_NOMBRE'] ?? ''),
+                        'producto_cantidad' => intval($row['producto_cantidad'] ?? $row['PRODUCTO_CANTIDAD'] ?? 0),
+                        'producto_categoria' => trim($row['producto_categoria'] ?? $row['PRODUCTO_CATEGORIA'] ?? ''),
+                        'producto_prioridad' => trim($row['producto_prioridad'] ?? $row['PRODUCTO_PRIORIDAD'] ?? 'Media')
+                    ];
+                }
+            }
+        }
+        
+        echo json_encode([
             'codigo' => 1,
-            'mensaje' => 'Productos comprados obtenidos',
-            'data' => $productos
+            'mensaje' => 'Productos comprados obtenidos correctamente',
+            'data' => $productos_comprados, // ✅ Variable correcta
+            'total' => count($productos_comprados)
         ]);
+        exit;
+        
     } catch (Exception $e) {
-        return $this->json([
+        echo json_encode([
             'codigo' => 0,
             'mensaje' => 'Error: ' . $e->getMessage(),
             'data' => []
         ]);
+        exit;
     }
 }
+
 
 public function regresarPendiente() {
     try {
@@ -174,6 +208,10 @@ public function regresarPendiente() {
     }
 }
 
+
+
+
+
 public function eliminarComprado() {
     try {
         $id = $_GET['id'] ?? null;
@@ -201,37 +239,51 @@ public function eliminarComprado() {
 }
 
 public static function marcarCompradoAPI()
-    {
-        header("Content-type: application/json; charset=utf-8");
+{
+    header("Content-type: application/json; charset=utf-8");
+    
+    try {
+        $id = intval($_GET['id'] ?? 0);
         
-        try {
-            $id = intval($_GET['id'] ?? 0);
-            
-            if ($id <= 0) {
-                echo json_encode(['codigo' => 0, 'mensaje' => 'ID inválido']);
-                return;
-            }
-            
-            $db = self::getDB();
-            $sql = "UPDATE productos SET producto_comprado = 1 WHERE producto_id = $id";
-            
-            $resultado = $db->exec($sql);
-            
-            echo json_encode([
-                'codigo' => 1, 
-                'mensaje' => 'Producto marcado como comprado'
-            ]);
-            
-        } catch (Exception $e) {
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'Error: ' . $e->getMessage()
-            ]);
+        if ($id <= 0) {
+            echo json_encode(['codigo' => 0, 'mensaje' => 'ID inválido']);
+            return;
         }
+        
+        $db = self::getDB();
+        $sql = "UPDATE productos SET producto_comprado = 1 WHERE producto_id = $id";
+        $resultado = $db->exec($sql);
+        
+        // Buscar TODOS los productos comprados
+        $sqlComprados = "SELECT * FROM productos WHERE producto_situacion = 1 AND producto_comprado = 1";
+        $resultadoComprados = $db->query($sqlComprados);
+        $productosComprados = [];
+        
+        if ($resultadoComprados) {
+            while ($row = $resultadoComprados->fetch(\PDO::FETCH_ASSOC)) {
+                $productosComprados[] = [
+                    'producto_id' => intval($row['producto_id'] ?? $row['PRODUCTO_ID'] ?? 0),
+                    'producto_nombre' => trim($row['producto_nombre'] ?? $row['PRODUCTO_NOMBRE'] ?? ''),
+                    'producto_cantidad' => intval($row['producto_cantidad'] ?? $row['PRODUCTO_CANTIDAD'] ?? 0),
+                    'producto_categoria' => trim($row['producto_categoria'] ?? $row['PRODUCTO_CATEGORIA'] ?? ''),
+                    'producto_prioridad' => trim($row['producto_prioridad'] ?? $row['PRODUCTO_PRIORIDAD'] ?? 'Media')
+                ];
+            }
+        }
+        
+        echo json_encode([
+            'codigo' => 1, 
+            'mensaje' => 'Producto marcado como comprado',
+            'productos_comprados' => $productosComprados
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'codigo' => 0,
+            'mensaje' => 'Error: ' . $e->getMessage()
+        ]);
     }
-    
-
-    
+}    
     public static function desmarcarCompradoAPI()
     {
         header("Content-type: application/json; charset=utf-8");
@@ -291,4 +343,10 @@ public static function marcarCompradoAPI()
             ]);
         }
     }
+
+
+
+
+
+    
 }
