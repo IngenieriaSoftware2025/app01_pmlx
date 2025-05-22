@@ -4,6 +4,7 @@ namespace Controllers;
 
 use Exception;
 use MVC\Router;
+use PDO; 
 
 class ProductoController 
 {
@@ -72,86 +73,134 @@ class ProductoController
         }
     }
     
-    public static function buscarAPI()
-    {
-        header("Content-type: application/json; charset=utf-8");
-        
-        try {
-            $db = self::getDB();
-            
-            // Consulta simple para Informix
-            $sql = "SELECT producto_id, producto_nombre, producto_cantidad, producto_categoria, producto_prioridad, producto_comprado, producto_situacion FROM productos WHERE producto_situacion = 1 AND producto_comprado = 0";
-            
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            
-            $productos = [];
-            
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $productos[] = [
-                    'producto_id' => intval($row['producto_id'] ?? 0),
-                    'producto_nombre' => trim($row['producto_nombre'] ?? ''),
-                    'producto_cantidad' => intval($row['producto_cantidad'] ?? 0),
-                    'producto_categoria' => trim($row['producto_categoria'] ?? ''),
-                    'producto_prioridad' => trim($row['producto_prioridad'] ?? ''),
-                ];
-            }
-            
-            echo json_encode([
-                'codigo' => 1,
-                'mensaje' => 'Productos obtenidos correctamente',
-                'data' => $productos,
-                'total' => count($productos)
-            ]);
-            
-        } catch (Exception $e) {
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'Error al buscar: ' . $e->getMessage(),
-                'linea' => $e->getLine()
-            ]);
-        }
-    } 
+ public static function buscarAPI()
+{
+    ob_clean();
+    header("Content-type: application/json; charset=utf-8");
     
-    public static function buscarCompradosAPI()
-    {
-        header("Content-type: application/json; charset=utf-8");
+    try {
+        $db = self::getDB();
         
-        try {
-            $db = self::getDB();
-            
-            $sql = "SELECT producto_id, producto_nombre, producto_cantidad, producto_categoria FROM productos WHERE producto_situacion = 1 AND producto_comprado = 1";
-            
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            
-            $productos = [];
-            
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $productos[] = [
-                    'producto_id' => intval($row['producto_id'] ?? 0),
-                    'producto_nombre' => trim($row['producto_nombre'] ?? ''),
-                    'producto_cantidad' => intval($row['producto_cantidad'] ?? 0),
-                    'producto_categoria' => trim($row['producto_categoria'] ?? '')
-                ];
+        $sql = "SELECT * FROM productos";
+        $resultado = $db->query($sql);
+        
+        $productos_para_lista = [];
+        
+        if ($resultado) {
+            while ($row = $resultado->fetch(\PDO::FETCH_ASSOC)) {
+                if ($row) {
+                    // Obtener valores con fallback a mayúsculas
+                    $situacion = intval($row['producto_situacion'] ?? $row['PRODUCTO_SITUACION'] ?? 0);
+                    $comprado = intval($row['producto_comprado'] ?? $row['PRODUCTO_COMPRADO'] ?? 0);
+                    
+                    // Solo productos activos y NO comprados
+                    if ($situacion == 1 && $comprado == 0) {
+                        $productos_para_lista[] = [
+                            'producto_id' => intval($row['producto_id'] ?? $row['PRODUCTO_ID'] ?? 0),
+                            'producto_nombre' => trim($row['producto_nombre'] ?? $row['PRODUCTO_NOMBRE'] ?? ''),
+                            'producto_cantidad' => intval($row['producto_cantidad'] ?? $row['PRODUCTO_CANTIDAD'] ?? 0),
+                            'producto_categoria' => trim($row['producto_categoria'] ?? $row['PRODUCTO_CATEGORIA'] ?? ''),
+                            'producto_prioridad' => trim($row['producto_prioridad'] ?? $row['PRODUCTO_PRIORIDAD'] ?? 'Media')
+                        ];
+                    }
+                }
             }
-            
-            echo json_encode([
-                'codigo' => 1,
-                'mensaje' => 'Productos comprados obtenidos',
-                'data' => $productos
-            ]);
-            
-        } catch (Exception $e) {
-            echo json_encode([
-                'codigo' => 0,
-                'mensaje' => 'Error: ' . $e->getMessage(),
-                'linea' => $e->getLine()
-            ]);
         }
+        
+        echo json_encode([
+            'codigo' => 1,
+            'mensaje' => 'Productos obtenidos correctamente',
+            'data' => $productos_para_lista,
+            'total' => count($productos_para_lista)
+        ]);
+        exit;
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'codigo' => 0,
+            'mensaje' => $e->getMessage()
+        ]);
+        exit;
     }
-    
-    public static function marcarCompradoAPI()
+}
+
+
+
+
+public function buscarCompradosAPI() {
+    try {
+        $productos = Productos::whereNotNull('productos_nombre')
+                           ->orderBy('productos_id', 'DESC')
+                           ->get();
+        
+        return $this->json([
+            'codigo' => 1,
+            'mensaje' => 'Productos comprados obtenidos',
+            'data' => $productos
+        ]);
+    } catch (Exception $e) {
+        return $this->json([
+            'codigo' => 0,
+            'mensaje' => 'Error: ' . $e->getMessage(),
+            'data' => []
+        ]);
+    }
+}
+
+public function regresarPendiente() {
+    try {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            throw new Exception('ID requerido');
+        }
+        
+        $producto = Producto::find($id);
+        if (!$producto) {
+            throw new Exception('Producto no encontrado');
+        }
+        
+        $producto->fecha_comprado = null;
+        $producto->save();
+        
+        return $this->json([
+            'codigo' => 1,
+            'mensaje' => 'Producto regresado a pendientes'
+        ]);
+    } catch (Exception $e) {
+        return $this->json([
+            'codigo' => 0,
+            'mensaje' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+}
+
+public function eliminarComprado() {
+    try {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            throw new Exception('ID requerido');
+        }
+        
+        $producto = Producto::find($id);
+        if (!$producto) {
+            throw new Exception('Producto no encontrado');
+        }
+        
+        $producto->delete();
+        
+        return $this->json([
+            'codigo' => 1,
+            'mensaje' => 'Producto eliminado definitivamente'
+        ]);
+    } catch (Exception $e) {
+        return $this->json([
+            'codigo' => 0,
+            'mensaje' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+}
+
+public static function marcarCompradoAPI()
     {
         header("Content-type: application/json; charset=utf-8");
         
@@ -180,6 +229,8 @@ class ProductoController
             ]);
         }
     }
+    
+
     
     public static function desmarcarCompradoAPI()
     {

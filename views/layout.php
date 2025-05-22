@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="build/js/app.js"></script>
-    <link rel="shortcut icon" href="<?= asset('images/cit.png') ?>" type="image/x-icon">
+    <link rel="shortcut icon" href="<?= asset('images/super.png') ?>" type="image/x-icon">
     <link rel="stylesheet" href="<?= asset('build/styles.css') ?>">
-    <title>DemoApp</title>
+    <title>Suermercado </title>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark  bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark  bg-success">
         <div class="container-fluid">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -44,7 +44,7 @@
         <div class="row justify-content-center text-center">
             <div class="col-12">
                 <p style="font-size:xx-small; font-weight: bold;">
-                    Comando de Informática y Tecnología, <?= date('Y') ?> &copy;
+                    Tienda de conveniencia <?= date('Y') ?> &copy;
                 </p>
             </div>
         </div>
