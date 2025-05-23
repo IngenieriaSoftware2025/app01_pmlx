@@ -210,8 +210,6 @@ public function regresarPendiente() {
 
 
 
-
-
 public function eliminarComprado() {
     try {
         $id = $_GET['id'] ?? null;
