@@ -39,7 +39,7 @@
   <div class="overlay"></div>
 
   <div class="content container">
-    <h1 class="display-4 fw-bold">Bienvenido a Tu Programa</h1>
+    <h1 class="display-4 fw-bold">"Bienvenido a Tu Programa"</h1>
     <p class="lead">¡Lista en mano, No hay olvido temprano!</p>
   </div>
 <script src="build/js/inicio.js"></script>
