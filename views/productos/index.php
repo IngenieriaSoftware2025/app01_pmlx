@@ -145,6 +145,26 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="<?= asset('build/js/productos/index.js') ?>"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 console.log('🚀 JavaScript INLINE cargado');
 
@@ -536,7 +556,4 @@ async function eliminarDefinitivo(id) {
 }
 </script>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script src="<?= asset('build/js/productos/index.js') ?>"></script>

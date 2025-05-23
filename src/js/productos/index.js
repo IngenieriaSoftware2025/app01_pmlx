@@ -1,5 +1,137 @@
-
 console.log('🚀 JavaScript INLINE cargado');
+
+// ⭐ NOTIFICACIONES SENCILLAS PERO BONITAS
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    // Crear contenedor si no existe
+    let contenedor = document.getElementById('notification-container');
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'notification-container';
+        contenedor.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 300px;
+        `;
+        document.body.appendChild(contenedor);
+    }
+    
+    // Crear la notificación
+    const notificacion = document.createElement('div');
+    const esExito = tipo === 'success';
+    const icono = esExito ? '✅' : '❌';
+    const color = esExito ? '#28a745' : '#dc3545';
+    
+    notificacion.innerHTML = `
+        <div style="
+            background: white;
+            border: 2px solid ${color};
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        ">
+            <span style="font-size: 16px;">${icono}</span>
+            <span>${mensaje}</span>
+        </div>
+    `;
+    
+    contenedor.appendChild(notificacion);
+    
+    // Auto-eliminar después de 3 segundos
+    setTimeout(() => {
+        if (notificacion.parentNode) {
+            notificacion.style.opacity = '0';
+            notificacion.style.transition = 'opacity 0.2s';
+            setTimeout(() => {
+                notificacion.parentNode.removeChild(notificacion);
+            }, 300);
+        }
+    }, 3000);
+}
+
+// ⭐ CONFIRMACIÓN SENCILLA
+function mostrarConfirmacion(mensaje) {
+    return new Promise((resolve) => {
+        // Crear overlay simple
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
+        
+        // Crear modal simple
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        `;
+        
+        modal.innerHTML = `
+            <div style="margin-bottom: 20px;">
+                <span style="font-size: 32px;">🤔</span>
+                <p style="margin: 10px 0 0 0; font-size: 16px; color: #333;">${mensaje}</p>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btn-si" style="
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">Sí</button>
+                <button id="btn-no" style="
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">No</button>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        overlay.appendChild(modal);
+        
+        // Manejar respuestas
+        function cerrarModal(resultado) {
+            document.body.removeChild(overlay);
+            resolve(resultado);
+        }
+        
+        modal.querySelector('#btn-si').onclick = () => cerrarModal(true);
+        modal.querySelector('#btn-no').onclick = () => cerrarModal(false);
+        overlay.onclick = (e) => {
+            if (e.target === overlay) cerrarModal(false);
+        };
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM listo');
@@ -32,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('- Prioridad:', prioridad);
             
             if (!nombre || !cantidad || !categoria || !prioridad) {
-                alert('❌ Por favor completa todos los campos');
+                mostrarNotificacion('Por favor completa todos los campos', 'error');
                 BtnGuardar.disabled = false;
                 BtnGuardar.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Agregar Producto';
                 return;
@@ -58,17 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('📦 Resultado:', resultado);
                 
                 if (resultado.codigo === 1) {
-                    alert('✅ ¡Producto agregado exitosamente!');
+                    mostrarNotificacion('¡Producto agregado exitosamente!', 'success');
                     FormProductos.reset();
                     document.getElementById('producto_prioridad').value = 'Media';
                     buscarProductos();
                 } else {
-                    alert('❌ Error: ' + resultado.mensaje);
+                    mostrarNotificacion('Error: ' + resultado.mensaje, 'error');
                 }
                 
             } catch (error) {
                 console.log('💥 Error:', error);
-                alert('💥 Error de conexión: ' + error.message);
+                mostrarNotificacion('Error de conexión: ' + error.message, 'error');
             }
             
             BtnGuardar.disabled = false;
@@ -80,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         BtnLimpiar.addEventListener('click', () => {
             FormProductos.reset();
             document.getElementById('producto_prioridad').value = 'Media';
+            mostrarNotificacion('Formulario limpiado', 'success');
         });
     }
     
@@ -100,6 +233,7 @@ async function buscarProductos() {
         }
     } catch (error) {
         console.log('Error al buscar productos:', error);
+        mostrarNotificacion('Error al cargar productos', 'error');
     }
 }
 
@@ -194,12 +328,15 @@ async function marcarComprado(id) {
         const respuesta = await fetch(`/app01_pmlx/productos/marcarComprado?id=${id}`);
         const datos = await respuesta.json();
         if (datos.codigo === 1) {
-            alert('✅ Producto marcado como comprado');
+            mostrarNotificacion('Producto marcado como comprado', 'success');
             buscarProductos(); // Actualizar productos pendientes
             buscarProductosComprados(); // ⭐ Actualizar productos comprados
+        } else {
+            mostrarNotificacion('Error al marcar como comprado', 'error');
         }
     } catch (error) {
         console.log('Error:', error);
+        mostrarNotificacion('Error de conexión', 'error');
     }
 }
 
@@ -212,22 +349,24 @@ async function regresarPendiente(id) {
         
         if (datos.codigo === 1) {
             console.log('✅ Producto regresado a pendientes exitosamente');
-            alert('↩️ Producto regresado a la lista de compras');
+            mostrarNotificacion('Producto regresado a la lista de compras', 'success');
             buscarProductos(); // Actualizar productos pendientes
             buscarProductosComprados(); // Actualizar productos comprados
         } else {
             console.log('❌ Error al regresar a pendientes:', datos.mensaje);
-            alert('❌ Error: ' + datos.mensaje);
+            mostrarNotificacion('Error: ' + datos.mensaje, 'error');
         }
     } catch (error) {
         console.log('💥 Error al regresar a pendientes:', error);
-        alert('💥 Error de conexión: ' + error.message);
+        mostrarNotificacion('Error de conexión: ' + error.message, 'error');
     }
 }
 
 // ⭐ NUEVA FUNCIÓN: Eliminar definitivamente
 async function eliminarDefinitivo(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto DEFINITIVAMENTE?')) {
+    const confirmado = await mostrarConfirmacion('¿Estás seguro de eliminar este producto definitivamente?');
+    
+    if (confirmado) {
         console.log('🗑️ Eliminando definitivamente producto:', id);
         try {
             const respuesta = await fetch(`/app01_pmlx/productos/eliminar?id=${id}`);
@@ -235,15 +374,15 @@ async function eliminarDefinitivo(id) {
             
             if (datos.codigo === 1) {
                 console.log('✅ Producto eliminado definitivamente');
-                alert('🗑️ Producto eliminado definitivamente');
+                mostrarNotificacion('Producto eliminado definitivamente', 'success');
                 buscarProductosComprados(); // Actualizar productos comprados
             } else {
                 console.log('❌ Error al eliminar definitivamente:', datos.mensaje);
-                alert('❌ Error: ' + datos.mensaje);
+                mostrarNotificacion('Error: ' + datos.mensaje, 'error');
             }
         } catch (error) {
             console.log('💥 Error al eliminar definitivamente:', error);
-            alert('💥 Error de conexión: ' + error.message);
+            mostrarNotificacion('Error de conexión: ' + error.message, 'error');
         }
     }
 }
