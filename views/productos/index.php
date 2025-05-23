@@ -50,11 +50,7 @@
                                 </button>
                             </div>
 
-                            <div class="col-auto">
-                                <button class="btn btn-warning d-none" type="button" id="BtnModificar">
-                                    <i class="bi bi-pencil-square me-1"></i>Modificar
-                                </button>
-                            </div>
+                         
 
                             <div class="col-auto">
                                 <button class="btn btn-secondary" type="reset" id="BtnLimpiar">
